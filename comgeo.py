@@ -14,6 +14,7 @@ class GeoArea(QtWidgets.QWidget):
         super().__init__()
         self.point = None
         self.pen = QtGui.QPen(QtGui.QColor("green"), 5)
+        self.brush = QtGui.QBrush(QtGui.QColor("green"), QtCore.Qt.SolidPattern)
         #self.pixmap = self.grab()
         self.image = QtGui.QImage()
 
@@ -38,7 +39,8 @@ class GeoArea(QtWidgets.QWidget):
         self.point = QtCore.QPointF(pos)
         painter = QtGui.QPainter(self.image)
         painter.setPen(self.pen)
-        painter.drawPoint(self.point)  
+        painter.setBrush(self.brush)
+        painter.drawEllipse(self.point, 2, 2)  
         self.update()
 
     def resizeImage(self, oldImage, newSize):
