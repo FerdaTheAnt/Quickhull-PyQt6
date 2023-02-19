@@ -20,7 +20,8 @@ class MainWindow(QtWidgets.QMainWindow):
 class GeoArea(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
-        self.points = set()
+        self.pointsX = []
+        self.pointsY = []
         self.lastPoint = None
         self.pointCounter = 0
         self.MAX_POINTS = 100
@@ -48,7 +49,8 @@ class GeoArea(QtWidgets.QWidget):
         if(not self.image.isNull() and self.pointCounter < self.MAX_POINTS):
             self.pointCounter += 1
             self.lastPoint = (x,y)
-            self.points.add(self.lastPoint)
+            self.pointsX.append(self.lastPoint[0])
+            self.pointsY.append(self.lastPoint[1])
             painter = QtGui.QPainter(self.image)
             painter.setPen(self.pen)
             painter.setBrush(self.brush)
@@ -56,7 +58,8 @@ class GeoArea(QtWidgets.QWidget):
             self.update()
 
     def randomSet(self):
-        self.points.clear()
+        self.pointsX.clear()
+        self.pointsY.clear()
         self.pointCounter = 0
         self.image.fill(QtGui.QColor("white"))
         for _ in range(self.MAX_POINTS):
@@ -76,8 +79,52 @@ class GeoArea(QtWidgets.QWidget):
         self.image = newImage
 
     def quickHull(self):
-        pass
+        hull = set()
 
+        index = self.pointsX.index(min(self.pointsX))
+        first = (self.pointsX[index], self.pointsY[index])
+        index = self.pointsX.index(max(self.pointsX))
+        second = (self.pointsX[index], self.pointsY[index])
+        hull.add(first, second)
+
+        self.assembleSet(first, second)
+        self.assembleSet(second, first)
+
+    def assembleSet(self, A, B):
+        C = self.findFurthest(A, B) #points a, b, c form a triangle, we assemble points that are inside this triangle
+        for i in range(self.pointCounter):
+            point = (self.pointsX[i], self.pointsY[i])
+            if(self.insideTriangle(A, B, C, point)):
+                #remove point from list of points
+                pass
+
+    def findFurthest(self, A, B):
+        lineVect = (B[0] - A[0], B[1] - A[1])
+        pointVect = 0
+        area = 0
+        furthest = -1
+        index = 0
+        for i in range(self.pointCounter):
+            pointVect = (self.pointsX[i] - A[0], self.pointsY[i] - A[1])
+            area = lineVect[0]*pointVect[1] - lineVect[1]*pointVect[0] #points "under" line AB should have negative area
+            if(area > furthest):
+                furthest = area
+                index = i
+        return (self.pointsX[index], self.pointsY[index])
+    
+    def insideTriangle(self, A, B, C, point):
+        if(not self.lineSide(A, B, point)): return False
+        if(not self.lineSide(B, C, point)): return False
+        if(not self.lineSide(C, A, point)): return False
+        return True
+    
+    def lineSide(self, A, B, point):
+        lineVect = (B[0] - A[0], B[1] - A[1])
+        pointVect = (point[0] - A[0], point[1] - A[1])
+        area = lineVect[0]*pointVect[1] - lineVect[1]*pointVect[0]
+        if(area <= 0):
+            return False
+        return True
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication([])
