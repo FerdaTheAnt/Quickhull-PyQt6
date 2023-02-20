@@ -29,7 +29,7 @@ class MainWindow(QtWidgets.QMainWindow):
 class GeoArea(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
-        self.points = [[],[]]
+        self.points = set()
         self.lastPoint = None
         self.pointCounter = 0
         self.MAX_POINTS = 100
@@ -57,8 +57,7 @@ class GeoArea(QtWidgets.QWidget):
         if(not self.image.isNull() and self.pointCounter < self.MAX_POINTS):
             self.pointCounter += 1
             self.lastPoint = (x,y)
-            self.points[0].append(x)
-            self.points[1].append(y)
+            self.points.add((x,y))
 
             painter = QtGui.QPainter(self.image)
             painter.setPen(self.pen)
@@ -69,7 +68,6 @@ class GeoArea(QtWidgets.QWidget):
 
     def randomSet(self):
         self.points.clear()
-        self.points = [[], []]
         self.pointCounter = 0
         self.image.fill(QtGui.QColor("white"))
         for _ in range(self.MAX_POINTS):
@@ -92,7 +90,6 @@ class GeoArea(QtWidgets.QWidget):
         hull = quickhull.beginQuickHull(self.points)
         #prototype
         self.points.clear()
-        self.points = [[], []]
         self.pointCounter = 0
         self.image.fill(QtGui.QColor("white"))
         for point in hull:
