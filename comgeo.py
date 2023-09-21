@@ -11,13 +11,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.GeoArea = GeoArea()
         self.setCentralWidget(self.GeoArea)
         self.toolBar = QtWidgets.QToolBar()
-        randomAction = QtGui.QAction("Random set", self)
-        randomAction.triggered.connect(self.randomAct)
-        self.toolBar.addAction(randomAction)
-
-        quickHullAction = QtGui.QAction("QuickHull", self)
-        quickHullAction.triggered.connect(self.quickHullAct)
-        self.toolBar.addAction(quickHullAction)
+        self.createActions()
         self.addToolBar(self.toolBar)
 
     def randomAct(self):
@@ -26,13 +20,29 @@ class MainWindow(QtWidgets.QMainWindow):
     def quickHullAct(self):
         self.GeoArea.quickHull()
 
+    def clearAct(self):
+        self.GeoArea.clear()
+
+    def createActions(self):
+        randomAction = QtGui.QAction("Random set", self)
+        randomAction.triggered.connect(self.randomAct)
+        self.toolBar.addAction(randomAction)
+
+        quickHullAction = QtGui.QAction("QuickHull", self)
+        quickHullAction.triggered.connect(self.quickHullAct)
+        self.toolBar.addAction(quickHullAction)
+
+        clearAction = QtGui.QAction("Clear", self)
+        clearAction.triggered.connect(self.clearAct)
+        self.toolBar.addAction(clearAction)
+
 class GeoArea(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
         self.points = set()
         self.lastPoint = None
         self.pointCounter = 0
-        self.MAX_POINTS = 100
+        self.MAX_POINTS = 200
         self.pen = QtGui.QPen(QtGui.QColor("green"), 5)
         self.brush = QtGui.QBrush(QtGui.QColor("green"), QtCore.Qt.SolidPattern)
         self.image = QtGui.QImage()
@@ -67,12 +77,12 @@ class GeoArea(QtWidgets.QWidget):
             self.update()
 
     def randomSet(self):
-        self.points.clear()
-        self.pointCounter = 0
-        self.image.fill(QtGui.QColor("white"))
+        self.clear()
         for _ in range(self.MAX_POINTS):
-            temp_x = random.uniform(10, self.width()-10)
-            temp_y = random.uniform(10, self.height()-10)
+            temp_x = random.gauss(0, 1)*(self.width())%(self.width()-100) + 50
+            temp_y = random.gauss(0, 1)*(self.height())%(self.height()-100) + 50
+            # temp_x = random.uniform(10, self.height()-10)
+            # temp_y = random.uniform(10, self.height()-10)
             self.createPoint(temp_x, temp_y)
 
     def resizeImage(self, oldImage, newSize):
@@ -89,11 +99,16 @@ class GeoArea(QtWidgets.QWidget):
     def quickHull(self):
         hull = quickhull.beginQuickHull(self.points)
         #prototype
+        if(hull):
+            self.clear()
+            for point in hull:
+                self.createPoint(point[0], point[1])
+
+    def clear(self):
         self.points.clear()
         self.pointCounter = 0
         self.image.fill(QtGui.QColor("white"))
-        for point in hull:
-            self.createPoint(point[0], point[1])
+        self.update()
 
 
 if __name__ == "__main__":

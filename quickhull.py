@@ -2,6 +2,8 @@ import random
 
 #compute convex hull for a given set of points in 2-D
 def beginQuickHull(points):
+    if(len(points)<3):
+        return
     hull = set()
     first = list(points)[0]
     second = first
